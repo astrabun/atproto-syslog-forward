@@ -1,0 +1,37 @@
+{
+  "name": "atproto-syslog-forward",
+  "version": "1.0.0",
+  "description": "Listen for AT Protocol events and forward to a syslog destination",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "oxlint --type-aware src/",
+    "lint:fix": "oxlint --type-aware --fix src/",
+    "fmt": "oxfmt src/",
+    "fmt:check": "oxfmt --check src/",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm --out-dir dist",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Astra Bun",
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "oxfmt": "^0.40.0",
+    "oxlint": "^1.55.0",
+    "oxlint-tsgolint": "^0.17.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@atcute/atproto": "^3.1.10",
+    "@atcute/bluesky": "^3.3.0",
+    "@atcute/client": "^4.2.1",
+    "@atcute/identity-resolver": "^1.2.2",
+    "@atcute/jetstream": "^1.1.2",
+    "@atcute/lexicons": "^1.2.9",
+    "@dotenvx/dotenvx": "^1.55.1",
+    "ws": "^8.19.0"
+  }
+}

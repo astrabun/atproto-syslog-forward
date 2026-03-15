@@ -1,0 +1,9 @@
+services:
+  example-listener:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    # environment:
+      # Can override .env values here
