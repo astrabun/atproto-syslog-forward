@@ -1,7 +1,7 @@
 // Configuration types
 export interface Config {
   mode: 'handle' | 'keyword';
-  subscriptions: ('posts' | 'likes')[];
+  subscriptions: ('posts' | 'likes' | 'profile' | 'follows')[];
   actions: ('add' | 'delete')[];
   syslogHost: string;
   syslogPort: number;
@@ -15,4 +15,7 @@ export interface Config {
 
   // Keyword mode specific
   keywords?: string[];
+
+  // If we want to start at a cursor value
+  cursor?: number;
 }

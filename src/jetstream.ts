@@ -30,7 +30,7 @@ export class JetstreamListener {
   }
 
   private async startHandleMode(): Promise<void> {
-    const {handle, did} = this.config;
+    const {handle, did, cursor} = this.config;
     const actor = {
       did: did ?? undefined,
     };
@@ -52,15 +52,37 @@ export class JetstreamListener {
         this.abortController = new AbortController();
 
         // Create subscription with wanted DIDs or let it receive all events and filter
+        const wantedCollections = [];
+        if (this.config.subscriptions.includes('posts')) {
+          wantedCollections.push('app.bsky.feed.post');
+        }
+        if (this.config.subscriptions.includes('likes')) {
+          wantedCollections.push('app.bsky.feed.like');
+        }
+        if (this.config.subscriptions.includes('profile')) {
+          wantedCollections.push('app.bsky.actor.profile');
+        }
+        if (this.config.subscriptions.includes('follows')) {
+          wantedCollections.push('app.bsky.graph.follow');
+        }
         const subscriptionOptions = {
+          cursor,
           url: 'wss://jetstream2.us-east.bsky.network',
-          wantedCollections: ['app.bsky.feed.post', 'app.bsky.feed.like'],
+          wantedCollections,
           wantedDids: [actor.did] as Did[],
         };
 
+        if (cursor) {
+          console.log(`Starting cursor at ${cursor}`);
+        } else {
+          console.log('Starting cursor @ present.');
+        }
+
         this.subscription = new JetstreamSubscription(subscriptionOptions);
+        console.log(`Cursor @ ${this.subscription.cursor}`);
 
         for await (const event of this.subscription) {
+          console.log(`Event occurred @ cursor: ${this.subscription.cursor}`);
           try {
             if (this.abortController.signal.aborted) {
               break;

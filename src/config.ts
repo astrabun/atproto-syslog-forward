@@ -5,6 +5,10 @@ export function loadConfig(): Config {
   config(); // Load .env
   const mode = process.env.MODE || 'handle';
 
+  const cursor = process.env.JETSTREAM_CURSOR_START
+    ? parseInt(process.env.JETSTREAM_CURSOR_START)
+    : undefined;
+
   if (mode !== 'handle' && mode !== 'keyword') {
     throw new Error(`Invalid MODE: ${mode}. Must be 'handle' or 'keyword'`);
   }
@@ -15,12 +19,17 @@ export function loadConfig(): Config {
     .split(',')
     .map((subsString) => subsString.trim().toLowerCase())
     .filter(
-      (subsString): subsString is 'posts' | 'likes' =>
-        subsString === 'posts' || subsString === 'likes',
+      (subsString): subsString is 'posts' | 'likes' | 'profile' | 'follows' =>
+        subsString === 'posts' ||
+        subsString === 'likes' ||
+        subsString === 'profile' ||
+        subsString === 'follows',
     );
 
   if (subscriptions.length === 0) {
-    throw new Error('SUBSCRIPTIONS must contain at least one of: posts, likes');
+    throw new Error(
+      'SUBSCRIPTIONS must contain at least one of: posts, likes, profile, follows',
+    );
   }
 
   // Parse actions
@@ -80,6 +89,7 @@ export function loadConfig(): Config {
       syslogFacility,
       syslogTag,
       syslogProto,
+      cursor,
     };
   } else {
     const keywordsStr = process.env.KEYWORDS;
@@ -107,6 +117,7 @@ export function loadConfig(): Config {
       syslogFacility,
       syslogTag,
       syslogProto,
+      cursor,
     };
   }
 }
