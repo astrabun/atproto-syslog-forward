@@ -5,5 +5,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - ./cursor.json:/cursor.json:rw  # you may need to `touch cursor.json` first. Future state: make this nicer :)
     # environment:
       # Can override .env values here

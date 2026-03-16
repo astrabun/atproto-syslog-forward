@@ -1,6 +1,6 @@
 {
   "name": "atproto-syslog-forward",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Listen for AT Protocol events and forward to a syslog destination",
   "type": "module",
   "main": "dist/index.js",
@@ -33,5 +33,6 @@
     "@atcute/lexicons": "^1.2.9",
     "@dotenvx/dotenvx": "^1.55.1",
     "ws": "^8.19.0"
-  }
+  },
+  "packageManager": "pnpm@10.30.1"
 }
