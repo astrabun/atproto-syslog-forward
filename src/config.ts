@@ -9,6 +9,8 @@ export function loadConfig(): Config {
     ? parseInt(process.env.JETSTREAM_CURSOR_START)
     : undefined;
 
+  const cursorCheckpointPath = process.env.JETSTREAM_CURSOR_CHECKPOINT_PATH;
+
   if (mode !== 'handle' && mode !== 'keyword') {
     throw new Error(`Invalid MODE: ${mode}. Must be 'handle' or 'keyword'`);
   }
@@ -90,6 +92,7 @@ export function loadConfig(): Config {
       syslogTag,
       syslogProto,
       cursor,
+      cursorCheckpointPath,
     };
   } else {
     const keywordsStr = process.env.KEYWORDS;
@@ -118,6 +121,7 @@ export function loadConfig(): Config {
       syslogTag,
       syslogProto,
       cursor,
+      cursorCheckpointPath,
     };
   }
 }

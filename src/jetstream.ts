@@ -1,3 +1,4 @@
+import {readFile, writeFile, access} from 'node:fs/promises';
 import {JetstreamSubscription} from '@atcute/jetstream';
 import {type Config} from './types.js';
 import {type SyslogClient} from './syslog.js';
@@ -30,10 +31,31 @@ export class JetstreamListener {
   }
 
   private async startHandleMode(): Promise<void> {
-    const {handle, did, cursor} = this.config;
+    const {handle, did, cursor, cursorCheckpointPath} = this.config;
     const actor = {
       did: did ?? undefined,
     };
+
+    const jetstreamCursorDetails = {
+      cursor,
+      cursorCheckpointPath,
+    };
+
+    if (jetstreamCursorDetails.cursorCheckpointPath) {
+      try {
+        const fileExists = await access(jetstreamCursorDetails.cursorCheckpointPath).then(() => true).catch(() => false);
+        if (fileExists) {
+          const data = await readFile(jetstreamCursorDetails.cursorCheckpointPath, 'utf8');
+          const parsed = JSON.parse(data) as {cursor: number};
+          jetstreamCursorDetails.cursor = parsed.cursor;
+          console.log(`Loaded cursor ${jetstreamCursorDetails.cursor} from ${jetstreamCursorDetails.cursorCheckpointPath}`);
+        }
+      } catch (error) {
+        // Some other issue occurred.
+        console.error(`Unable to load cursor position from ${jetstreamCursorDetails.cursorCheckpointPath}`);
+        console.error(error);
+      }
+    }
 
     if (!actor.did) {
       if (!handle) {
@@ -66,14 +88,14 @@ export class JetstreamListener {
           wantedCollections.push('app.bsky.graph.follow');
         }
         const subscriptionOptions = {
-          cursor,
+          cursor: jetstreamCursorDetails.cursor,
           url: 'wss://jetstream2.us-east.bsky.network',
           wantedCollections,
           wantedDids: [actor.did] as Did[],
         };
 
-        if (cursor) {
-          console.log(`Starting cursor at ${cursor}`);
+        if (jetstreamCursorDetails.cursor) {
+          console.log(`Starting cursor at ${jetstreamCursorDetails.cursor}`);
         } else {
           console.log('Starting cursor @ present.');
         }
@@ -81,19 +103,31 @@ export class JetstreamListener {
         this.subscription = new JetstreamSubscription(subscriptionOptions);
         console.log(`Cursor @ ${this.subscription.cursor}`);
 
-        for await (const event of this.subscription) {
-          console.log(`Event occurred @ cursor: ${this.subscription.cursor}`);
-          try {
-            if (this.abortController.signal.aborted) {
-              break;
-            }
+        const cursorSaveInterval = cursorCheckpointPath
+          ? setInterval(() => {
+              if (this.subscription?.cursor !== undefined) {
+                void writeFile(cursorCheckpointPath, JSON.stringify({cursor: this.subscription.cursor}));
+              }
+            }, 60_000)
+          : undefined;
 
-            if (event.kind === 'commit') {
-              await this.syslogClient.send(event);
+        try {
+          for await (const event of this.subscription) {
+            console.log(`Event occurred @ cursor: ${this.subscription.cursor}`);
+            try {
+              if (this.abortController.signal.aborted) {
+                break;
+              }
+
+              if (event.kind === 'commit') {
+                await this.syslogClient.send(event);
+              }
+            } catch (error) {
+              console.error('Error processing event:', error);
             }
-          } catch (error) {
-            console.error('Error processing event:', error);
           }
+        } finally {
+          clearInterval(cursorSaveInterval);
         }
       } catch (error) {
         if (this.abortController?.signal.aborted) {
