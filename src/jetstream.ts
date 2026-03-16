@@ -43,16 +43,27 @@ export class JetstreamListener {
 
     if (jetstreamCursorDetails.cursorCheckpointPath) {
       try {
-        const fileExists = await access(jetstreamCursorDetails.cursorCheckpointPath).then(() => true).catch(() => false);
+        const fileExists = await access(
+          jetstreamCursorDetails.cursorCheckpointPath,
+        )
+          .then(() => true)
+          .catch(() => false);
         if (fileExists) {
-          const data = await readFile(jetstreamCursorDetails.cursorCheckpointPath, 'utf8');
+          const data = await readFile(
+            jetstreamCursorDetails.cursorCheckpointPath,
+            'utf8',
+          );
           const parsed = JSON.parse(data) as {cursor: number};
           jetstreamCursorDetails.cursor = parsed.cursor;
-          console.log(`Loaded cursor ${jetstreamCursorDetails.cursor} from ${jetstreamCursorDetails.cursorCheckpointPath}`);
+          console.log(
+            `Loaded cursor ${jetstreamCursorDetails.cursor} from ${jetstreamCursorDetails.cursorCheckpointPath}`,
+          );
         }
       } catch (error) {
         // Some other issue occurred.
-        console.error(`Unable to load cursor position from ${jetstreamCursorDetails.cursorCheckpointPath}`);
+        console.error(
+          `Unable to load cursor position from ${jetstreamCursorDetails.cursorCheckpointPath}`,
+        );
         console.error(error);
       }
     }
@@ -106,7 +117,10 @@ export class JetstreamListener {
         const cursorSaveInterval = cursorCheckpointPath
           ? setInterval(() => {
               if (this.subscription?.cursor !== undefined) {
-                void writeFile(cursorCheckpointPath, JSON.stringify({cursor: this.subscription.cursor}));
+                void writeFile(
+                  cursorCheckpointPath,
+                  JSON.stringify({cursor: this.subscription.cursor}),
+                );
               }
             }, 60_000)
           : undefined;
