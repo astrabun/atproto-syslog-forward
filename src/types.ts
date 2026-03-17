@@ -19,4 +19,9 @@ export interface Config {
   // If we want to start at a cursor value
   cursor?: number;
   cursorCheckpointPath?: string;
+
+  // TAP backfill settings (handle mode only)
+  tapBackfill?: boolean;
+  tapBackfillEndpoint?: string;
+  tapBackfillUntil?: number;
 }

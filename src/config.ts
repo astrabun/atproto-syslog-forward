@@ -79,6 +79,26 @@ export function loadConfig(): Config {
       throw new Error('HANDLE is required when MODE is "handle"');
     }
 
+    const tapBackfill = process.env.TAP_BACKFILL === 'true';
+    const tapBackfillEndpoint = process.env.TAP_BACKFILL_ENDPOINT;
+    const tapBackfillUntilStr = process.env.TAP_BACKFILL_UNTIL;
+
+    if (tapBackfill && !tapBackfillEndpoint) {
+      throw new Error(
+        'TAP_BACKFILL_ENDPOINT is required when TAP_BACKFILL is true',
+      );
+    }
+
+    let tapBackfillUntil: number | undefined;
+    if (tapBackfillUntilStr) {
+      tapBackfillUntil = parseInt(tapBackfillUntilStr, 10);
+      if (isNaN(tapBackfillUntil)) {
+        throw new Error(
+          `Invalid TAP_BACKFILL_UNTIL: ${tapBackfillUntilStr}. Must be a valid number (microseconds)`,
+        );
+      }
+    }
+
     // oxlint-disable-next-line sort-keys
     return {
       mode,
@@ -93,6 +113,9 @@ export function loadConfig(): Config {
       syslogProto,
       cursor,
       cursorCheckpointPath,
+      tapBackfill,
+      tapBackfillEndpoint,
+      tapBackfillUntil,
     };
   } else {
     const keywordsStr = process.env.KEYWORDS;
