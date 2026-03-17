@@ -1,6 +1,6 @@
 {
   "name": "atproto-syslog-forward",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Listen for AT Protocol events and forward to a syslog destination",
   "type": "module",
   "main": "dist/index.js",
@@ -17,6 +17,7 @@
   "author": "Astra Bun",
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/ws": "^8.18.1",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0",
     "oxlint-tsgolint": "^0.17.0",
