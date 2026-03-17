@@ -4,6 +4,7 @@ import {type Config} from './types.js';
 import {type SyslogClient} from './syslog.js';
 import {actorResolver} from './resolver.js';
 import {type Did, type Handle} from '@atcute/lexicons/syntax';
+import {TapBackfillListener} from './tap.js';
 
 export class JetstreamListener {
   // oxlint-disable-next-line unicorn/no-null
@@ -80,7 +81,40 @@ export class JetstreamListener {
       console.log(`Using DID ${actor.did}`);
     }
 
-    while (true) {
+    // Handle TAP backfill if enabled
+    if (this.config.tapBackfill && this.config.tapBackfillEndpoint) {
+      console.log('TAP backfill enabled, starting backfill...');
+      const wantedCollections = [];
+      if (this.config.subscriptions.includes('posts')) {
+        wantedCollections.push('app.bsky.feed.post');
+      }
+      if (this.config.subscriptions.includes('likes')) {
+        wantedCollections.push('app.bsky.feed.like');
+      }
+      if (this.config.subscriptions.includes('profile')) {
+        wantedCollections.push('app.bsky.actor.profile');
+      }
+      if (this.config.subscriptions.includes('follows')) {
+        wantedCollections.push('app.bsky.graph.follow');
+      }
+
+      const tapListener = new TapBackfillListener(
+        this.config.tapBackfillEndpoint,
+        this.syslogClient,
+        actor.did,
+        wantedCollections,
+        this.config.tapBackfillUntil,
+      );
+
+      try {
+        await tapListener.start();
+      } catch (error) {
+        console.error('TAP backfill failed:', error);
+        console.log('Continuing without TAP backfill...');
+      }
+    }
+
+    while (!this.config.tapBackfill && true) {
       try {
         this.abortController = new AbortController();
 
